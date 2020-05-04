@@ -1,5 +1,6 @@
 import cron from "node-cron";
 import { slackInteractions, slackWebClient } from "../routes/slack";
+import { capitalizeFirstLetter } from "../utils/text";
 
 interface Member {
   id: string;
@@ -94,9 +95,5 @@ const createRegisterHoursReminder = (name: string) => {
     ],
   };
 };
-
-function capitalizeFirstLetter(s: string) {
-  return s.charAt(0).toUpperCase() + s.slice(1);
-}
 
 export default startEndOfWeekReminder;

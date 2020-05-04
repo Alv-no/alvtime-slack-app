@@ -89,9 +89,7 @@ oauth2Router.use(
 oauth2Router.get(
   "/azuread",
   function (req, _res, next) {
-    console.log("req.session: ", req.session);
-    req.session.slackToken = "hei";
-    console.log("req.session: ", req.session);
+    req.session.slackToken = req.query.token;
     next();
   },
   passport.authenticate("azureAd", { successRedirect: "/" })
@@ -100,7 +98,9 @@ oauth2Router.get(
 oauth2Router.get(
   "/cb",
   function (req, _res, next) {
-    console.log("cb req.session: ", req.session);
+    console.log("cb req.session: ", req.session.slackToken);
+    const payload = jwt.decode(req.session.slackToken, config.JWT_SECRET);
+    console.log("payload: ", payload);
     next();
   },
   passport.authenticate("azureAd", {

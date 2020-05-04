@@ -1,6 +1,9 @@
 import express from "express";
 import env from "../../environment";
 import { slackWebClient, slackInteractions } from "./index";
+import { capitalizeFirstLetter } from "../../utils/text";
+import jwt from "jwt-simple";
+import config from "../../config";
 
 interface CommandBody {
   token: string;
@@ -19,23 +22,45 @@ interface CommandBody {
 function createSlashCommandRouter() {
   const slashCommandRouter = express.Router();
 
-  slashCommandRouter.use("/", (req, _res, next) => {
-    console.log(req.body);
-    next();
-  });
+  slashCommandRouter.use("/", (req, res, next) => {
+    const {
+      text,
+      channel_id,
+      user_name,
+      trigger_id,
+      team_id,
+      team_domain,
+      user_id,
+    } = req.body;
 
-  slashCommandRouter.use("/", (req, _res, next) => {
-    const { text, channel_id, user_name } = req.body;
     if (text === "test") {
-      const loginMessage = createLoginMessage(user_name, channel_id);
+      const iat = new Date().getTime();
+      const oneHoure = 60 * 60 * 1000;
+      const payload = {
+        trigger_id,
+        teamSlackId: team_id,
+        teamSlackDomain: team_domain,
+        userSlackId: user_id,
+        channelSlackId: channel_id,
+        replaySlashCommand: true,
+        iat,
+        exp: iat + oneHoure,
+      };
+      const token = jwt.encode(payload, config.JWT_SECRET);
+      const loginMessage = createLoginMessage(user_name, channel_id, token);
       slackWebClient.chat.postMessage(loginMessage);
+      res.send("");
+    } else {
+      next();
     }
-    next();
   });
 
   slashCommandRouter.post("/", (req, res) => {
     const body = req.body as CommandBody;
-    slackWebClient.chat.postMessage({ text: "HEI", channel: body.channel_id });
+    slackWebClient.chat.postMessage({
+      text: "Her kommer det alvtime funksjonalitet",
+      channel: body.channel_id,
+    });
     res.send("");
   });
 
@@ -51,7 +76,8 @@ function createSlashCommandRouter() {
   return slashCommandRouter;
 }
 
-function createLoginMessage(name: string, channelId: string) {
+function createLoginMessage(name: string, channelId: string, token: string) {
+  name = capitalizeFirstLetter(name);
   return {
     text: "",
     blocks: [
@@ -70,7 +96,7 @@ function createLoginMessage(name: string, channelId: string) {
             text: "Login med Azure Ad",
             emoji: true,
           },
-          url: env.HOST + "/oauth2/azuread",
+          url: env.HOST + "/oauth2/azuread?token=" + token,
           value: "login_button_clicked",
         },
       },
