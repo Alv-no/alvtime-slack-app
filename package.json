@@ -20,8 +20,8 @@
   },
   "dependencies": {
     "@slack/events-api": "^2.3.2",
-    "@slack/interactive-messages": "^1.5.0",
-    "@slack/web-api": "^5.8.0",
+    "@slack/interactive-messages": "^1.6.0",
+    "@slack/web-api": "^5.8.1",
     "body-parser": "^1.19.0",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
@@ -47,7 +47,7 @@
     "express"
   ],
   "devDependencies": {
-    "@types/concurrently": "^5.1.0",
+    "@types/concurrently": "^5.2.0",
     "@types/eslint": "^6.8.0",
     "@types/express-session": "^1.17.0",
     "@types/jest": "^25.2.1",
@@ -58,14 +58,14 @@
     "@types/passport": "^1.0.3",
     "@types/passport-oauth2": "^1.4.9",
     "@types/uuid": "^7.0.3",
-    "@typescript-eslint/eslint-plugin": "^2.27.0",
-    "@typescript-eslint/parser": "^2.27.0",
-    "concurrently": "^5.1.0",
+    "@typescript-eslint/eslint-plugin": "^2.31.0",
+    "@typescript-eslint/parser": "^2.31.0",
+    "concurrently": "^5.2.0",
     "eslint": "^6.8.0",
-    "jest": "^25.2.7",
-    "nodemon": "^2.0.2",
-    "ts-jest": "^25.3.1",
-    "ts-node": "^8.8.2",
+    "jest": "^25.5.4",
+    "nodemon": "^2.0.3",
+    "ts-jest": "^25.5.0",
+    "ts-node": "^8.10.1",
     "typescript": "^3.8.3"
   }
 }
