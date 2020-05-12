@@ -4,6 +4,7 @@ import { slackWebClient, slackInteractions } from "./index";
 import { capitalizeFirstLetter } from "../../utils/text";
 import jwt from "jwt-simple";
 import config from "../../config";
+import UserModel from "../../models/user";
 
 interface CommandBody {
   token: string;
@@ -19,41 +20,21 @@ interface CommandBody {
   trigger_id: string;
 }
 
-function createSlashCommandRouter() {
+interface LoginInfo {
+  slackUserName: string;
+  slackUserID: string;
+  slackChannelID: string;
+  action: { type: string; value: { [key: string]: string } };
+}
+
+const actionTypes = Object.freeze({
+  COMMAND: "COMMAND",
+});
+
+export default function createSlashCommandRouter() {
   const slashCommandRouter = express.Router();
 
-  slashCommandRouter.use("/", (req, res, next) => {
-    const {
-      text,
-      channel_id,
-      user_name,
-      trigger_id,
-      team_id,
-      team_domain,
-      user_id,
-    } = req.body;
-
-    if (text === "test") {
-      const iat = new Date().getTime();
-      const oneHoure = 60 * 60 * 1000;
-      const payload = {
-        trigger_id,
-        teamSlackId: team_id,
-        teamSlackDomain: team_domain,
-        userSlackId: user_id,
-        channelSlackId: channel_id,
-        replaySlashCommand: true,
-        iat,
-        exp: iat + oneHoure,
-      };
-      const token = jwt.encode(payload, config.JWT_SECRET);
-      const loginMessage = createLoginMessage(user_name, channel_id, token);
-      slackWebClient.chat.postMessage(loginMessage);
-      res.send("");
-    } else {
-      next();
-    }
-  });
+  slashCommandRouter.use("/", authenticate);
 
   slashCommandRouter.post("/", (req, res) => {
     const body = req.body as CommandBody;
@@ -64,16 +45,50 @@ function createSlashCommandRouter() {
     res.send("");
   });
 
-  slackInteractions.action(
-    { actionId: "open_login_in_browser" },
-    async function () {
-      return {
-        text: "Åpner login nettside...",
-      };
-    }
-  );
+  slackInteractions.action({ actionId: "open_login_in_browser" }, () => ({
+    text: "Åpner login nettside...",
+  }));
 
   return slashCommandRouter;
+}
+
+async function authenticate(
+  req: { body: CommandBody },
+  res: { send: (s: string) => void },
+  next: (s?: string) => void
+) {
+  const user = await UserModel.findOne({ slackUserID: req.body.user_id });
+  if (!user) {
+    const { user_name, user_id, channel_id, command, text } = req.body;
+    const loginInfo = {
+      slackUserName: user_name,
+      slackUserID: user_id,
+      slackChannelID: channel_id,
+      action: { type: actionTypes.COMMAND, value: { command, text } },
+    };
+    sendLoginMessage(loginInfo);
+    res.send("");
+  } else {
+    next();
+  }
+}
+
+function sendLoginMessage(info: LoginInfo) {
+  const { slackUserName, slackChannelID } = info;
+  const token = createToken(info);
+  const loginMessage = createLoginMessage(slackUserName, slackChannelID, token);
+  slackWebClient.chat.postMessage(loginMessage);
+}
+
+function createToken(info: LoginInfo) {
+  const iat = new Date().getTime();
+  const exp = iat + 60 * 60 * 1000;
+  const payload = {
+    ...info,
+    iat,
+    exp,
+  };
+  return jwt.encode(payload, config.JWT_SECRET);
 }
 
 function createLoginMessage(name: string, channelId: string, token: string) {
@@ -104,5 +119,3 @@ function createLoginMessage(name: string, channelId: string, token: string) {
     channel: channelId,
   };
 }
-
-export default createSlashCommandRouter;

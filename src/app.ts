@@ -1,6 +1,6 @@
 import express from "express";
 import startEndOfWeekReminder from "./reminders/endOfWeek";
-import oauth2Router from "./routes/oauth2";
+import oauth2Router from "./routes/auth/index";
 import slackRouter from "./routes/slack";
 import mongoose from "mongoose";
 import env from "./environment";
@@ -10,6 +10,7 @@ const app = express();
 const dbOptions = {
   useNewUrlParser: true,
   useUnifiedTopology: true,
+  useFindAndModify: false,
   useCreateIndex: true,
   auth: {
     user: env.DB_USER,
