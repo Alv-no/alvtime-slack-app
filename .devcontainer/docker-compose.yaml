@@ -27,6 +27,8 @@ services:
     links:
       - alvtime-slack-app-dotnet-backend
       - mongo
+    environment:
+      - ALVTIME_API_URI=http://alvtime-slack-app-dotnet-backend
     expose:
       - 3000
 

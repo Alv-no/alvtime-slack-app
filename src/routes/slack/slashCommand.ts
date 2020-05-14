@@ -5,8 +5,9 @@ import { capitalizeFirstLetter } from "../../utils/text";
 import jwt from "jwt-simple";
 import config from "../../config";
 import UserModel from "../../models/user";
+import runCommand from "./runCommand";
 
-interface CommandBody {
+export interface CommandBody {
   token: string;
   team_id: string;
   team_domain: string;
@@ -37,11 +38,8 @@ export default function createSlashCommandRouter() {
   slashCommandRouter.use("/", authenticate);
 
   slashCommandRouter.post("/", (req, res) => {
-    const body = req.body as CommandBody;
-    slackWebClient.chat.postMessage({
-      text: "Her kommer det alvtime funksjonalitet",
-      channel: body.channel_id,
-    });
+    const commandBody = req.body as CommandBody;
+    runCommand(commandBody);
     res.send("");
   });
 
