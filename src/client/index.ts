@@ -79,8 +79,6 @@ function createGetTasks(state: State) {
   const getTasks = async (accessToken: string) => {
     const headers = { Authorization: `Bearer ${accessToken}` };
     const url = state.uri + "/api/user/tasks";
-    console.log("url: ", url);
-    console.log("init: ", { headers });
     return state.fetcher(url, { headers });
   };
   return { getTasks };
