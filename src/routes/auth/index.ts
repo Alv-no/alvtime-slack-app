@@ -7,8 +7,8 @@ import UserModel from "../../models/user";
 import azureAdStrategy, { AuthenticatedUser, DoneFunc } from "./azureAd";
 
 passport.use("azureAd", azureAdStrategy);
-passport.serializeUser((user: AuthenticatedUser, done: DoneFunc) =>
-  done(null, user)
+passport.serializeUser((_user: AuthenticatedUser, done: DoneFunc) =>
+  done(null, "not in use")
 );
 
 const oauth2Router = express.Router();
@@ -29,7 +29,7 @@ oauth2Router.get(
     req.session.loginToken = req.query.token;
     next();
   },
-  passport.authenticate("azureAd", { successRedirect: "/" })
+  passport.authenticate("azureAd")
 );
 
 oauth2Router.get(
@@ -45,7 +45,7 @@ oauth2Router.get(
       );
       next();
     } catch (error) {
-      console.error(error);
+      console.error("error", error);
       res.redirect("/login");
     }
   },
@@ -62,25 +62,15 @@ async function writeUserToDb(
     loginToken,
     config.JWT_SECRET
   );
-  const { user, params, refreshToken } = authenticatedUser;
+  const { name, email, auth } = authenticatedUser;
   const doc = {
-    name: user.name,
-    email: user.unique_name,
+    name,
+    email,
     slackUserName,
     slackUserID,
-    auth: {
-      tokenType: params.token_type,
-      scope: params.scope,
-      expiresIn: params.expires_in,
-      extExpiresIn: params.ext_expires_in,
-      expiresOn: params.expires_on,
-      notBefore: params.not_before,
-      resource: params.resource,
-      accessToken: params.access_token,
-      idToken: params.id_token,
-      refreshToken,
-    },
+    auth,
   };
+
   await UserModel.findOneAndUpdate({ slackUserID }, doc, { upsert: true });
 }
 

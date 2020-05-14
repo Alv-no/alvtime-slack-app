@@ -1,5 +1,22 @@
 import mongoose from "mongoose";
 
+export interface UserData {
+  name: string;
+  email: string;
+  slackUserName: string;
+  slackUserID: string;
+  auth: {
+    tokenType: string;
+    scope: string;
+    expiresOn: string;
+    expiresIn: number;
+    extExpiresIn: number;
+    accessToken: string;
+    idToken: string;
+    refreshToken: string;
+  };
+}
+
 const userSchema = new mongoose.Schema({
   name: String,
   email: String,
@@ -8,11 +25,9 @@ const userSchema = new mongoose.Schema({
   auth: {
     tokenType: String,
     scope: String,
-    expiresIn: String,
-    extExpiresIn: String,
     expiresOn: String,
-    notBefore: String,
-    resource: String,
+    expiresIn: Number,
+    extExpiresIn: Number,
     accessToken: String,
     idToken: String,
     refreshToken: String,
