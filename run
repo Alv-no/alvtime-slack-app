@@ -33,3 +33,5 @@
 
 [ "prune" = $1 ] && \
   docker system prune --volumes -f
+
+exit 0
