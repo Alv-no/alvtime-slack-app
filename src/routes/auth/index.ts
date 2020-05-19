@@ -71,7 +71,8 @@ async function writeUserToDb(
     auth,
   };
 
-  await UserModel.findOneAndUpdate({ slackUserID }, doc, { upsert: true });
+  const user = new UserModel(doc);
+  await user.save();
 }
 
 export default oauth2Router;

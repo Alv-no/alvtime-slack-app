@@ -1,4 +1,6 @@
 import mongoose from "mongoose";
+import encrypt from "mongoose-encryption";
+import env from "../environment";
 
 export interface UserData {
   name: string;
@@ -32,6 +34,12 @@ const userSchema = new mongoose.Schema({
     idToken: String,
     refreshToken: String,
   },
+});
+
+userSchema.plugin(encrypt, {
+  encryptionKey: env.DB_ENCRYPTION_KEY,
+  signingKey: env.DB_SIGNING_KEY,
+  excludeFromEncryption: ["slackUserID"],
 });
 
 export default mongoose.model("User", userSchema);
