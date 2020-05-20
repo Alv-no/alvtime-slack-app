@@ -7,7 +7,7 @@ import env from "../../environment";
 import UserModel from "../../models/user";
 import { slackWebClient } from "../slack/index";
 import runCommand from "../slack/runCommand";
-import { actionTypes } from "../slack/slashCommand";
+import { actionTypes, LoginTokenData } from "../slack/slashCommand";
 import azureAdStrategy, { AuthenticatedUser, DoneFunc } from "./azureAd";
 import createLoginPage from "./loginPage";
 
@@ -30,16 +30,10 @@ oauth2Router.use(
 );
 
 oauth2Router.get("/login", (req, res) => {
-  const { slackTeamDomain, exp } = jwt.decode(
-    req.query.token,
-    config.JWT_SECRET
-  );
-  const now = new Date().getTime();
-  if (now > exp) {
-    throw "Expired";
-  }
-  req.session.loginToken = req.query.token;
-  res.send(createLoginPage(slackTeamDomain));
+  const loginInfo = jwt.decode(req.query.token, config.JWT_SECRET);
+  validateTokenExp(loginInfo.exp);
+  req.session.loginInfo = loginInfo;
+  res.send(createLoginPage(loginInfo.slackTeamDomain));
 });
 
 oauth2Router.get("/azuread", passport.authenticate("azureAd"));
@@ -50,14 +44,11 @@ oauth2Router.get(
     failureRedirect: "/login",
   }),
   async (req, res, next) => {
-    const { slackTeamDomain, slackChannelID } = jwt.decode(
-      req.session.loginToken,
-      config.JWT_SECRET
-    );
+    const { slackTeamDomain, slackChannelID } = req.session.loginInfo;
     try {
       const written = await writeUserToDb(
         req.user as AuthenticatedUser,
-        req.session.loginToken
+        req.session.loginInfo
       );
       if (written) {
         next();
@@ -72,10 +63,12 @@ oauth2Router.get(
     }
   },
   (req, res) => {
-    const { slackTeamDomain, slackChannelID, slackUserID, action } = jwt.decode(
-      req.session.loginToken,
-      config.JWT_SECRET
-    );
+    const {
+      slackTeamDomain,
+      slackChannelID,
+      slackUserID,
+      action,
+    } = req.session.loginInfo;
 
     const { email } = req.user as AuthenticatedUser;
 
@@ -97,6 +90,13 @@ oauth2Router.get(
   }
 );
 
+function validateTokenExp(exp: number) {
+  const now = new Date().getTime();
+  if (now > exp) {
+    throw "Expired";
+  }
+}
+
 function createLoginSuccessMessage(
   slackUserID: string,
   alvtimeUserName: string,
@@ -104,7 +104,6 @@ function createLoginSuccessMessage(
 ) {
   return {
     text: "",
-    response_type: "ephemeral",
     blocks: [
       {
         type: "section",
@@ -120,13 +119,10 @@ function createLoginSuccessMessage(
 
 async function writeUserToDb(
   authenticatedUser: AuthenticatedUser,
-  loginToken: string
+  loginInfo: LoginTokenData
 ) {
   let written = false;
-  const { slackUserName, slackUserID } = jwt.decode(
-    loginToken,
-    config.JWT_SECRET
-  );
+  const { slackUserName, slackUserID } = loginInfo;
 
   const user = await UserModel.findOne({ slackUserID });
   if (!user) {

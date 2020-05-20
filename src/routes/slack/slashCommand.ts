@@ -31,6 +31,11 @@ export interface LoginInfo {
   action: { type: string; value: { [key: string]: string } };
 }
 
+export interface LoginTokenData extends LoginInfo {
+  exp: number;
+  iat: number;
+}
+
 export const actionTypes = Object.freeze({
   COMMAND: "COMMAND",
 });
