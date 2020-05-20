@@ -4,6 +4,7 @@ import env from "./environment";
 import startEndOfWeekReminder from "./reminders/endOfWeek";
 import oauth2Router from "./routes/auth/index";
 import slackRouter from "./routes/slack";
+import createErrorView from "./views/error";
 
 const app = express();
 
@@ -28,9 +29,17 @@ mongoose
     console.error("Database connection error: " + error);
   });
 
-app.use(express.static('public'))
+app.use(express.static("public"));
 app.use("/slack", slackRouter);
 app.use("/oauth2", oauth2Router);
+app.use("/something-went-wrong", (_req, res) => {
+  res.status(500).send(createErrorView());
+});
+
+app.use((err: any, req: any, res: any, next: any) => {
+  console.error(err.stack);
+  res.redirect("/something-went-wrong");
+});
 
 startEndOfWeekReminder();
 

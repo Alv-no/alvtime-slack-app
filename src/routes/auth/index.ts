@@ -41,25 +41,20 @@ oauth2Router.get("/azuread", passport.authenticate("azureAd"));
 oauth2Router.get(
   "/cb",
   passport.authenticate("azureAd", {
-    failureRedirect: "/login",
+    failureRedirect: "/something-went-wrong",
   }),
   async (req, res, next) => {
     const { slackTeamDomain, slackChannelID } = req.session.loginInfo;
-    try {
-      const written = await writeUserToDb(
-        req.user as AuthenticatedUser,
-        req.session.loginInfo
+    const written = await writeUserToDb(
+      req.user as AuthenticatedUser,
+      req.session.loginInfo
+    );
+    if (written) {
+      next();
+    } else {
+      res.redirect(
+        `https://${slackTeamDomain}.slack.com/app_redirect?channel=${slackChannelID}`
       );
-      if (written) {
-        next();
-      } else {
-        res.redirect(
-          `https://${slackTeamDomain}.slack.com/app_redirect?channel=${slackChannelID}`
-        );
-      }
-    } catch (error) {
-      console.error("error", error);
-      res.redirect("/login");
     }
   },
   (req, res) => {
