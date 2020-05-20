@@ -1,12 +1,13 @@
-import createAlvtimeClient, { TimeEntrie, Task } from "../../client/index";
+import fetch from "node-fetch";
+import createAlvtimeClient, { Task, TimeEntrie } from "../../client/index";
+import config from "../../config";
 import env from "../../environment";
-import { capitalizeFirstLetter } from "../../utils/text";
 import UserModel, { UserData } from "../../models/user";
+import configuredMoment from "../../moment";
+import { capitalizeFirstLetter } from "../../utils/text";
 import getAccessToken from "../auth/getAccessToken";
 import { slackWebClient } from "./index";
 import { CommandBody } from "./slashCommand";
-import configuredMoment from "../../moment";
-import config from "../../config";
 
 const { LOGG, TASKS, REG, UKE } = Object.freeze({
   TASKS: "TASKS",
@@ -65,7 +66,7 @@ async function logg(
       (entrie: TimeEntrie) => entrie.value !== 0
     );
 
-    let message = { text: "", blocks: [] as any };
+    let message = { text: "", response_type: "ephemeral", blocks: [] as any };
     if (timeEntriesWithValue.length === 0) {
       message.text = "Du har ikke ført noen timer denne uken :calendar:";
     } else {
@@ -107,13 +108,18 @@ async function logg(
       }
     }
 
-    slackWebClient.chat.postMessage({
-      ...message,
-      channel: commandBody.channel_id,
-    });
+    sendCommendResponse(commandBody.response_url, message);
   } catch (e) {
     console.log("error", e);
   }
+}
+
+function sendCommendResponse(responsURL: string, message: any) {
+  const method = "post";
+  const headers = { "Content-type": "application/json" };
+  const body = JSON.stringify(message);
+  const options = { method, headers, body };
+  fetch(responsURL, options);
 }
 
 async function tasks(

@@ -21,14 +21,17 @@ export interface CommandBody {
   trigger_id: string;
 }
 
-interface LoginInfo {
+export interface LoginInfo {
   slackUserName: string;
   slackUserID: string;
   slackChannelID: string;
+  slackChannelName: string;
+  slackTeamID: string;
+  slackTeamDomain: string;
   action: { type: string; value: { [key: string]: string } };
 }
 
-const actionTypes = Object.freeze({
+export const actionTypes = Object.freeze({
   COMMAND: "COMMAND",
 });
 
@@ -57,12 +60,18 @@ async function authenticate(
 ) {
   const user = await UserModel.findOne({ slackUserID: req.body.user_id });
   if (!user) {
-    const { user_name, user_id, channel_id, command, text } = req.body;
+    const { command, text } = req.body;
     const loginInfo = {
-      slackUserName: user_name,
-      slackUserID: user_id,
-      slackChannelID: channel_id,
-      action: { type: actionTypes.COMMAND, value: { command, text } },
+      slackUserName: req.body.user_name,
+      slackUserID: req.body.user_id,
+      slackChannelID: req.body.channel_id,
+      slackChannelName: req.body.channel_name,
+      slackTeamID: req.body.team_id,
+      slackTeamDomain: req.body.team_domain,
+      action: {
+        type: actionTypes.COMMAND,
+        value: (req.body as unknown) as { [key: string]: string },
+      },
     };
     sendLoginMessage(loginInfo);
     res.send("");
@@ -75,7 +84,12 @@ function sendLoginMessage(info: LoginInfo) {
   const { slackUserName, slackChannelID } = info;
   const token = createToken(info);
   const loginMessage = createLoginMessage(slackUserName, slackChannelID, token);
-  slackWebClient.chat.postMessage(loginMessage);
+  slackWebClient.chat.postEphemeral({
+    token: env.SLACK_BOT_TOKEN,
+    channel: info.slackChannelID,
+    user: info.slackUserID,
+    ...loginMessage,
+  });
 }
 
 function createToken(info: LoginInfo) {
@@ -106,10 +120,10 @@ function createLoginMessage(name: string, channelId: string, token: string) {
           action_id: "open_login_in_browser",
           text: {
             type: "plain_text",
-            text: "Login med Azure Ad",
+            text: "Connect Alvtime account",
             emoji: true,
           },
-          url: env.HOST + "/oauth2/azuread?token=" + token,
+          url: env.HOST + "/oauth2/login?token=" + token,
           value: "login_button_clicked",
         },
       },

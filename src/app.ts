@@ -28,6 +28,7 @@ mongoose
     console.error("Database connection error: " + error);
   });
 
+app.use(express.static('public'))
 app.use("/slack", slackRouter);
 app.use("/oauth2", oauth2Router);
 
