@@ -43,8 +43,7 @@ async function getUsers() {
   };
 
   const users = res.members.filter(
-    (member) =>
-      !member.is_bot && member.id !== "USLACKBOT" && member.name === "truls"
+    (member) => !member.is_bot && member.id !== "USLACKBOT"
   );
 
   return users;

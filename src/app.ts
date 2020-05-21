@@ -41,7 +41,7 @@ app.use((err: any, req: any, res: any, next: any) => {
   res.redirect("/something-went-wrong");
 });
 
-startEndOfWeekReminder();
+// startEndOfWeekReminder();
 
 // Starts server
 const port = env.PORT || 3000;
