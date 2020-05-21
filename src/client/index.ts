@@ -2,13 +2,16 @@ import fetch, { RequestInfo, RequestInit } from "node-fetch";
 
 type FetchFunc = (url: RequestInfo, init?: RequestInit) => Promise<any>;
 
-interface State {
+interface BaseState {
+  uri: string;
+  fetchFunc?: FetchFunc;
+}
+
+interface State extends BaseState {
   fetcher: (
     url: RequestInfo,
     init?: RequestInit
   ) => Promise<Task[] & TimeEntrie[]>;
-  uri: string;
-  fetchFunc?: FetchFunc;
 }
 
 export interface Task {
@@ -55,17 +58,15 @@ export default function createAlvtimeClient(
   uri: string,
   fetchFunc = fetch
 ): Client {
-  const state = {
+  const baseState = {
     fetchFunc,
     uri,
-    fetcher: async (
-      url: RequestInfo,
-      init?: RequestInit
-    ): Promise<Task[] & TimeEntrie[]> => [],
   };
 
-  const { fetcher } = createFetcher(state);
-  state.fetcher = fetcher;
+  const state = {
+    ...baseState,
+    ...createFetcher(baseState),
+  };
 
   return {
     ...createGetTasks(state),
@@ -137,7 +138,7 @@ function createEditTimeEntries(state: State) {
   };
 }
 
-function createFetcher(state: State) {
+function createFetcher(state: BaseState) {
   const fetcher = async (url: string, init: RequestInit) => {
     const response = await state.fetchFunc(url, init);
     if (response.status !== 200) {
