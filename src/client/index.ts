@@ -39,7 +39,7 @@ export interface Client {
   getTasks: (accessToken: string) => Promise<Task[]>;
   editFavoriteTasks: (tasks: Task[], accessToken: string) => Promise<Task[]>;
   getTimeEntries: (
-    params: {
+    dateRange: {
       fromDateInclusive: string;
       toDateInclusive: string;
     },
@@ -102,14 +102,14 @@ function createEditFavoriteTasks(state: State) {
 
 function createGetTimeEntries(state: State) {
   const getTimeEntries = async (
-    params: {
+    dateRange: {
       fromDateInclusive: string;
       toDateInclusive: string;
     },
     accessToken: string
   ) => {
     const url = new URL(state.uri + "/api/user/TimeEntries");
-    url.search = new URLSearchParams(params).toString();
+    url.search = new URLSearchParams(dateRange).toString();
     const headers = { Authorization: `Bearer ${accessToken}` };
     return state.fetcher(url.toString(), { headers });
   };
