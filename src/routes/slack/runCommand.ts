@@ -22,9 +22,9 @@ export default async function runCommand(commandBody: CommandBody) {
   const textArray = commandBody.text.split(" ");
   const command = textArray[0].toUpperCase();
   const params = textArray.filter((_t, i) => i !== 0);
-  const userData = ((await UserModel.findOne({
-    slackUserID: commandBody.user_id,
-  })) as unknown) as UserData;
+  const userData = ((await UserModel.findById(
+    commandBody.user_id
+  )) as unknown) as UserData;
 
   switch (command) {
     case LOGG:

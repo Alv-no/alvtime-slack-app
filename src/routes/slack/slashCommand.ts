@@ -63,9 +63,8 @@ async function authenticate(
   res: { send: (s: string) => void },
   next: (s?: string) => void
 ) {
-  const user = await UserModel.findOne({ slackUserID: req.body.user_id });
+  const user = await UserModel.findById(req.body.user_id);
   if (!user) {
-    const { command, text } = req.body;
     const loginInfo = {
       slackUserName: req.body.user_name,
       slackUserID: req.body.user_id,

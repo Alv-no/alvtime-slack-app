@@ -119,10 +119,11 @@ async function writeUserToDb(
   let written = false;
   const { slackUserName, slackUserID } = loginInfo;
 
-  const user = await UserModel.findOne({ slackUserID });
+  const user = await UserModel.findById(slackUserID);
   if (!user) {
     const { name, email, auth } = authenticatedUser;
     const doc = {
+      _id: slackUserID,
       name,
       email,
       slackUserName,

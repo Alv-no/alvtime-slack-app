@@ -1,7 +1,7 @@
 import fetch from "node-fetch";
 import config from "../../config";
 import env from "../../environment";
-import UserModel, {UserData} from "../../models/user";
+import UserModel, { UserData } from "../../models/user";
 
 interface RefreshAccessTokenRespons {
   token_type: string;
@@ -76,7 +76,13 @@ function updateUserAuth(
   refreshTokenBody: RefreshAccessTokenRespons
 ) {
   const nowInSecounds = Math.floor(new Date().getTime() / 1000);
+  const { name, email, slackUserName, slackUserID } = userData;
   const doc = {
+    _id: userData.slackUserID,
+    name,
+    email,
+    slackUserName,
+    slackUserID,
     auth: {
       tokenType: refreshTokenBody.token_type,
       scope: refreshTokenBody.scope,
@@ -87,14 +93,9 @@ function updateUserAuth(
       idToken: refreshTokenBody.id_token,
     },
   };
-  UserModel.findOneAndUpdate(
-    { slackUserID: userData.slackUserID },
-    doc,
-    function (err, doc) {
-      if (err) return console.log("error", err);
-      return console.log("Succesfully updated auth on user.");
-    }
-  );
+  UserModel.replaceOne({ _id: userData.slackUserID }, doc)
+    .then(() => console.log("Succesfully updated auth on user."))
+    .catch((e) => console.error("Unable to replace user data: ", e));
 }
 
 function createFormBody(obj: { [key: string]: string | number }) {
