@@ -36,10 +36,17 @@ app.use("/something-went-wrong", (_req, res) => {
   res.status(500).send(createErrorView());
 });
 
-app.use((err: any, req: any, res: any, next: any) => {
+app.use(errorHandler);
+
+function errorHandler(
+  err: { stack: string },
+  _req: {},
+  res: { redirect: (s: string) => void },
+  _next: () => void
+) {
   console.error(err.stack);
   res.redirect("/something-went-wrong");
-});
+}
 
 // startEndOfWeekReminder();
 
