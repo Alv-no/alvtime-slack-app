@@ -1,7 +1,6 @@
 import express from "express";
 import mongoose from "mongoose";
 import env from "./environment";
-import startEndOfWeekReminder from "./reminders/endOfWeek";
 import oauth2Router from "./routes/auth/index";
 import slackRouter from "./routes/slack";
 import createErrorView from "./views/error";

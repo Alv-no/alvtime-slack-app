@@ -66,7 +66,7 @@ async function logg(
       (entrie: TimeEntrie) => entrie.value !== 0
     );
 
-    let message = { text: "", response_type: "ephemeral", blocks: [] as any };
+    const message = { text: "", response_type: "ephemeral", blocks: [] as any };
     if (timeEntriesWithValue.length === 0) {
       message.text = "Du har ikke ført noen timer denne uken :calendar:";
     } else {
